@@ -1,31 +1,47 @@
 import { useState } from "react";
+import { exportData as exportDataAction } from "../_actions/send-email";
+import { getAllTimeEntries, clearAllData } from "../_lib/idb-service";
 
-export const DataManager = ({ exportData, importData, clearData }) => {
-  const [importFile, setImportFile] = useState(null);
+export const DataManager = ({ clearData, onDataCleared }) => {
   const [actionStatus, setActionStatus] = useState(null);
 
   const handleExport = async () => {
     setActionStatus({ type: "export", status: "processing" });
-    const result = await exportData();
-    setActionStatus({
-      type: "export",
-      status: result.success ? "success" : "error",
-      message: result.success ? "Export completed!" : result.error,
-    });
-  };
+    try {
+      const timeEntries = await getAllTimeEntries();
+      if (!timeEntries || timeEntries.length === 0) {
+        setActionStatus({
+          type: "export",
+          status: "error",
+          message: "No time entries found.",
+        });
+        return;
+      }
 
-  const handleImport = async () => {
-    if (!importFile) return;
-
-    setActionStatus({ type: "import", status: "processing" });
-    const result = await importData(importFile);
-    setActionStatus({
-      type: "import",
-      status: result.success ? "success" : "error",
-      message: result.success
-        ? `Imported ${result.importCount} entries (${result.errors} errors)`
-        : result.error,
-    });
+      const result = await exportDataAction(timeEntries);
+      if (result.success) {
+        await clearAllData();
+        onDataCleared && onDataCleared();
+        setActionStatus({
+          type: "export",
+          status: "success",
+          message: "Email sent successfully and data cleared!",
+        });
+      } else {
+        setActionStatus({
+          type: "export",
+          status: "error",
+          message: result.error || "Failed to send email.",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setActionStatus({
+        type: "export",
+        status: "error",
+        message: "An unexpected error occurred.",
+      });
+    }
   };
 
   const handleClear = async () => {
@@ -38,6 +54,7 @@ export const DataManager = ({ exportData, importData, clearData }) => {
 
     setActionStatus({ type: "clear", status: "processing" });
     const result = await clearData();
+    onDataCleared && onDataCleared();
     setActionStatus({
       type: "clear",
       status: result.success ? "success" : "error",
@@ -56,26 +73,11 @@ export const DataManager = ({ exportData, importData, clearData }) => {
             onClick={handleExport}
             className="bg-green-600 text-white px-3 py-1 rounded"
           >
-            Export Data
+            Send Data via Email
           </button>
-          <span className="text-sm">Download all time entries as JSON</span>
-        </div>
-
-        {/* Import Section */}
-        <div className="flex items-center gap-2">
-          <input
-            type="file"
-            accept=".json"
-            onChange={(e) => setImportFile(e.target.files[0])}
-            className="border p-1"
-          />
-          <button
-            onClick={handleImport}
-            disabled={!importFile}
-            className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
-          >
-            Import Data
-          </button>
+          <span className="text-sm">
+            Send all time entries as Excel via email
+          </span>
         </div>
 
         {/* Clear Section */}

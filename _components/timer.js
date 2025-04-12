@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTimeTracker } from "../hooks/useTimeTracker";
-import { DataManager } from "./DataManager";
-import { importData } from "@/lib/idbService";
+import { useTimeTracker } from "../_hooks/use-time-tracker";
+import { DataManager } from "./data-manager";
 
 export const Timer = () => {
   const [projectName, setProjectName] = useState("");
@@ -15,8 +14,8 @@ export const Timer = () => {
     entries,
     deleteEntry,
     exportData,
-    importData,
     clearData,
+    refreshEntries,
   } = useTimeTracker();
 
   if (!isDBReady) return <div>Loading database...</div>;
@@ -26,6 +25,15 @@ export const Timer = () => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleStopTimer = async () => {
+    await stopTimer();
+    setProjectName("");
+  };
+
+  const handleDataCleared = () => {
+    refreshEntries();
   };
 
   return (
@@ -48,7 +56,7 @@ export const Timer = () => {
           <>
             <p>Tracking: {currentTimer.project}</p>
             <button
-              onClick={stopTimer}
+              onClick={handleStopTimer}
               className="bg-red-500 text-white p-2 rounded"
             >
               Stop Timer
@@ -93,8 +101,8 @@ export const Timer = () => {
         </ul>
         <DataManager
           exportData={exportData}
-          importData={importData}
           clearData={clearData}
+          onDataCleared={handleDataCleared}
         />
       </div>
     </div>

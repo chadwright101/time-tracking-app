@@ -7,9 +7,12 @@ import {
   getEntriesByProject,
   deleteTimeEntry,
   exportAllData,
-  importData as idbImportData,
   clearAllData,
-} from "../lib/idbService";
+} from "../_lib/idb-service";
+
+const roundToNearest15 = (minutes) => {
+  return Math.ceil(minutes / 15) * 15;
+};
 
 export const useTimeTracker = () => {
   const [currentTimer, setCurrentTimer] = useState(null);
@@ -50,7 +53,9 @@ export const useTimeTracker = () => {
 
     const endTime = new Date();
     const startTime = new Date(currentTimer.startTime);
-    const duration = (endTime - startTime) / 1000; // in seconds
+    let duration = (endTime - startTime) / (1000 * 60);
+
+    duration = roundToNearest15(duration);
 
     await updateTimeEntry(currentTimer.id, {
       endTime: endTime.toISOString(),
@@ -99,18 +104,6 @@ export const useTimeTracker = () => {
     }
   };
 
-  const importData = async (file) => {
-    try {
-      const fileText = await file.text();
-      const data = JSON.parse(fileText);
-      const result = await idbImportData(data);
-      await refreshEntries();
-      return { success: true, ...result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  };
-
   const clearData = async () => {
     try {
       await clearAllData();
@@ -131,7 +124,6 @@ export const useTimeTracker = () => {
     getProjectTime,
     deleteEntry,
     refreshEntries,
-    importData,
     clearData,
     exportData,
   };

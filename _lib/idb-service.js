@@ -154,49 +154,6 @@ export const exportAllData = async () => {
   });
 };
 
-export const importData = async (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Validate imported data structure
-      if (!data || !Array.isArray(data.entries)) {
-        throw new Error("Invalid data format");
-      }
-
-      const existingData = await exportAllData();
-      const allEntries = [...existingData.entries, ...data.entries];
-
-      // Clear existing data
-      await clearAllData();
-
-      // Add all entries (existing + imported)
-      const db = await initDB();
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-
-      let importCount = 0;
-      let errors = 0;
-
-      for (const entry of allEntries) {
-        const request = store.add(entry);
-        request.onsuccess = () => importCount++;
-        request.onerror = () => errors++;
-      }
-
-      transaction.oncomplete = () => {
-        resolve({ importCount, errors });
-      };
-
-      transaction.onerror = (event) => {
-        console.error("Import transaction error", event);
-        reject("Import failed");
-      };
-    } catch (error) {
-      console.error("Import error", error);
-      reject(error.message);
-    }
-  });
-};
-
 export const clearAllData = async () => {
   return new Promise((resolve, reject) => {
     initDB().then((db) => {
