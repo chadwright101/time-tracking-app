@@ -28,7 +28,12 @@ export const useTimeTracker = () => {
 
   const refreshEntries = async () => {
     const allEntries = await getAllTimeEntries();
-    setEntries(allEntries || []);
+    const sortedEntries = allEntries
+      ? [...allEntries].sort(
+          (a, b) => new Date(b.startTime) - new Date(a.startTime)
+        )
+      : [];
+    setEntries(sortedEntries);
   };
 
   const startTimer = async (project) => {
