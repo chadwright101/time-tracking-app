@@ -74,6 +74,11 @@ export const useTimeTracker = () => {
     );
   };
 
+  const editEntry = async (id, updates) => {
+    await updateTimeEntry(id, updates);
+    await refreshEntries();
+  };
+
   const deleteEntry = async (id) => {
     await deleteTimeEntry(id);
     if (currentTimer && currentTimer.id === id) {
@@ -122,6 +127,7 @@ export const useTimeTracker = () => {
     startTimer,
     stopTimer,
     getProjectTime,
+    editEntry,
     deleteEntry,
     refreshEntries,
     clearData,
