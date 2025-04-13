@@ -129,8 +129,6 @@ export const deleteTimeEntry = (id) => {
   });
 };
 
-// Add these new functions to your existing idbService.js
-
 export const exportAllData = async () => {
   return new Promise((resolve, reject) => {
     initDB().then((db) => {

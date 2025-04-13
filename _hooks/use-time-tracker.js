@@ -43,9 +43,9 @@ export const useTimeTracker = () => {
 
     const newEntry = {
       project,
+      duration: 0,
       startTime: new Date().toISOString(),
       endTime: null,
-      duration: 0,
     };
 
     const id = await addTimeEntry(newEntry);
