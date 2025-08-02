@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Time Tracking App
+
+A PWA (Progressive Web App) time tracking application built with Next.js 15 and React 19.
+
+## Features
+
+- ⏱️ Start/stop timer with project tracking
+- 📊 Automatic 15-minute time rounding
+- 💾 Client-side data persistence with IndexedDB
+- ✏️ Inline editing of project names and durations
+- 📧 Excel export via email
+- 🌙 Dark mode support
+- 📱 PWA capabilities (offline support, installable)
+
+## Tech Stack
+
+- **Next.js 15** with App Router
+- **React 19**
+- **IndexedDB** for data persistence
+- **TailwindCSS** for styling
+- **PWA** with service worker
+- **Server Actions** for email functionality
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Development Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Start development server
+- `npm run build` - Build production application
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-## Learn More
+## Email Export Setup
 
-To learn more about Next.js, take a look at the following resources:
+To enable email export functionality, set these environment variables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+SMTP_HOST=your-smtp-host
+SMTP_USER=your-smtp-username
+SMTP_PASS=your-smtp-password
+SMTP_SEND_TO=recipient@example.com
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` - Next.js App Router pages and layout
+- `_components/` - React components (Timer, DataManager, DarkModeToggle)
+- `_hooks/` - Custom hooks (useTimeTracker, useDarkMode)
+- `_lib/` - Services (IndexedDB abstraction)
+- `_actions/` - Server Actions (email functionality)
