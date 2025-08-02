@@ -1,5 +1,6 @@
 import "./globals.css";
 import Script from "next/script";
+import { DarkModeProvider } from "../_hooks/use-dark-mode";
 
 export const metadata = {
   title: "Time Tracker",
@@ -8,7 +9,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-gray-100 dark:bg-gray-900">
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
@@ -17,8 +18,10 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="Time Tracker" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
-      <body>
-        {children}
+      <body className="bg-gray-100 dark:bg-gray-900 transition-colors">
+        <DarkModeProvider>
+          {children}
+        </DarkModeProvider>
         <Script
           id="register-sw"
           strategy="afterInteractive"

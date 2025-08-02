@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { exportData as exportDataAction } from "../_actions/send-email";
 import { getAllTimeEntries, clearAllData } from "../_lib/idb-service";
+import { Spinner } from "./spinner";
 
-export const DataManager = ({ clearData, onDataCleared }) => {
+export const DataManager = ({ onDataCleared }) => {
   const [actionStatus, setActionStatus] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
+    setIsExporting(true);
     setActionStatus({ type: "export", status: "processing" });
     try {
       const timeEntries = await getAllTimeEntries();
@@ -15,6 +18,7 @@ export const DataManager = ({ clearData, onDataCleared }) => {
           status: "error",
           message: "No time entries found.",
         });
+        setIsExporting(false);
         return;
       }
 
@@ -41,67 +45,42 @@ export const DataManager = ({ clearData, onDataCleared }) => {
         status: "error",
         message: "An unexpected error occurred.",
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleClear = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to clear ALL time tracking data? This cannot be undone."
-      )
-    )
-      return;
-
-    setActionStatus({ type: "clear", status: "processing" });
-    const result = await clearData();
-    onDataCleared && onDataCleared();
-    setActionStatus({
-      type: "clear",
-      status: result.success ? "success" : "error",
-      message: result.success ? "All data cleared" : result.error,
-    });
-  };
 
   return (
-    <div className="mt-8 p-4 border rounded-lg">
-      <h3 className="text-lg font-semibold mb-3">Data Management</h3>
+    <div className="mt-8 p-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg">
+      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Data Management</h3>
 
-      <div className="space-y-4">
+      <div>
         {/* Export Section */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
-            className="bg-green-600 text-white px-3 py-1 rounded"
+            disabled={isExporting}
+            className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-3 py-1 rounded transition-colors flex items-center gap-2"
           >
-            Send Data via Email
+            {isExporting && <Spinner size="4" />}
+            {isExporting ? "Sending..." : "Send Data via Email"}
           </button>
-          <span className="text-sm">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
             Send all time entries as Excel via email
           </span>
         </div>
 
-        {/* Clear Section */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleClear}
-            className="bg-red-600 text-white px-3 py-1 rounded"
-          >
-            Clear All Data
-          </button>
-          <span className="text-sm text-red-600">
-            Warning: This will delete all entries permanently
-          </span>
-        </div>
 
         {/* Status Messages */}
         {actionStatus && (
           <div
             className={`p-2 rounded ${
               actionStatus.status === "success"
-                ? "bg-green-100 text-green-800"
+                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
                 : actionStatus.status === "error"
-                ? "bg-red-100 text-red-800"
-                : "bg-blue-100 text-blue-800"
+                ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
             }`}
           >
             {actionStatus.status === "processing" ? (
