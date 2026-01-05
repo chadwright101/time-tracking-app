@@ -1,7 +1,7 @@
 "use server";
 
 import nodemailer from "nodemailer";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export const exportData = async (timeEntries) => {
   try {
@@ -9,10 +9,17 @@ export const exportData = async (timeEntries) => {
       return { success: false, error: "No time entries found." };
     }
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(timeEntries);
-    XLSX.utils.book_append_sheet(wb, ws, "TimeEntries");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("TimeEntries");
+
+    const headers = Object.keys(timeEntries[0]);
+    worksheet.addRow(headers);
+
+    timeEntries.forEach(entry => {
+      worksheet.addRow(Object.values(entry));
+    });
+
+    const excelBuffer = await workbook.xlsx.writeBuffer();
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,

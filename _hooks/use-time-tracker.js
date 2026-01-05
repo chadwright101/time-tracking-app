@@ -92,6 +92,15 @@ export const useTimeTracker = () => {
     await refreshEntries();
   };
 
+  const resumeEntry = async (entry) => {
+    if (currentTimer) {
+      await stopTimer();
+    }
+    await updateTimeEntry(entry.id, { endTime: null });
+    setCurrentTimer(entry);
+    await refreshEntries();
+  };
+
   const exportData = async () => {
     try {
       const data = await exportAllData();
@@ -134,6 +143,7 @@ export const useTimeTracker = () => {
     getProjectTime,
     editEntry,
     deleteEntry,
+    resumeEntry,
     refreshEntries,
     clearData,
     exportData,

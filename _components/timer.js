@@ -15,12 +15,14 @@ export const Timer = () => {
     entries,
     editEntry,
     deleteEntry,
+    resumeEntry,
     exportData,
     clearData,
     refreshEntries,
   } = useTimeTracker();
   const [editingId, setEditingId] = useState(null);
   const [editProjectName, setEditProjectName] = useState("");
+  const [entryToDelete, setEntryToDelete] = useState(null);
 
   if (!isDBReady) return <div className="text-gray-900 dark:text-gray-100">Loading database...</div>;
 
@@ -38,6 +40,17 @@ export const Timer = () => {
 
   const handleDataCleared = () => {
     refreshEntries();
+  };
+
+  const confirmDelete = async () => {
+    if (entryToDelete) {
+      await deleteEntry(entryToDelete.id);
+      setEntryToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setEntryToDelete(null);
   };
 
   return (
@@ -154,8 +167,16 @@ export const Timer = () => {
                     >
                       Edit
                     </button>
+                    {entry.endTime && (
+                      <button
+                        onClick={() => resumeEntry(entry)}
+                        className="text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 mr-2 transition-colors"
+                      >
+                        Resume
+                      </button>
+                    )}
                     <button
-                      onClick={() => deleteEntry(entry.id)}
+                      onClick={() => setEntryToDelete(entry)}
                       className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
                     >
                       ×
@@ -170,6 +191,30 @@ export const Timer = () => {
           onDataCleared={handleDataCleared}
         />
       </div>
+
+      {entryToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-lg max-w-sm">
+            <p className="text-gray-900 dark:text-gray-100 mb-4">
+              Delete entry for &quot;{entryToDelete.project}&quot;?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={cancelDelete}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
