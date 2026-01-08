@@ -96,8 +96,19 @@ export const useTimeTracker = () => {
     if (currentTimer) {
       await stopTimer();
     }
-    await updateTimeEntry(entry.id, { endTime: null });
-    setCurrentTimer(entry);
+
+    const previousDurationMinutes = entry.duration || 0;
+    const previousDurationMs = previousDurationMinutes * 60 * 1000;
+    const newStartTime = new Date(Date.now() - previousDurationMs).toISOString();
+
+    const updatedEntry = {
+      ...entry,
+      startTime: newStartTime,
+      endTime: null,
+    };
+
+    await updateTimeEntry(entry.id, { startTime: newStartTime, endTime: null });
+    setCurrentTimer(updatedEntry);
     await refreshEntries();
   };
 
