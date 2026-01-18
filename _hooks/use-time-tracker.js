@@ -10,8 +10,14 @@ import {
   clearAllData,
 } from "../_lib/idb-service";
 
+const LAST_ACTIVE_KEY = 'time-tracker-last-active';
+
 const roundToNearest15 = (minutes) => {
   return Math.ceil(minutes / 15) * 15;
+};
+
+const updateLastActiveTime = () => {
+  localStorage.setItem(LAST_ACTIVE_KEY, new Date().toISOString());
 };
 
 export const useTimeTracker = () => {
@@ -19,10 +25,37 @@ export const useTimeTracker = () => {
   const [entries, setEntries] = useState([]);
   const [isDBReady, setIsDBReady] = useState(false);
 
+  const handleOrphanedEntries = async () => {
+    const allEntries = await getAllTimeEntries();
+    const orphanedEntries = allEntries.filter(entry => entry.endTime === null);
+
+    if (orphanedEntries.length === 0) return;
+
+    const lastActive = localStorage.getItem(LAST_ACTIVE_KEY);
+    const endTime = lastActive || new Date().toISOString();
+
+    for (const entry of orphanedEntries) {
+      const startTime = new Date(entry.startTime);
+      const end = new Date(endTime);
+      let duration = (end - startTime) / (1000 * 60);
+
+      if (duration < 0) duration = 15;
+
+      duration = roundToNearest15(duration);
+
+      await updateTimeEntry(entry.id, {
+        endTime: endTime,
+        duration,
+      });
+    }
+  };
+
   useEffect(() => {
-    initDB().then(() => {
+    initDB().then(async () => {
+      await handleOrphanedEntries();
       setIsDBReady(true);
       refreshEntries();
+      updateLastActiveTime();
     });
   }, []);
 
@@ -144,6 +177,26 @@ export const useTimeTracker = () => {
       return { success: false, error: error.message };
     }
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      updateLastActiveTime();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        updateLastActiveTime();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   return {
     isDBReady,
